@@ -37,7 +37,8 @@ const BookSchema = new mongoose.Schema({
 BookSchema.plugin(mongoolia, {
   appId: 'xxxxx'
   apiKey: 'xxxx',
-  indexName: 'xxxx'
+  indexName: 'xxxx',
+  fieldName: 'xxxx' // Optional, Default: "_algoliaObjectID"
 })
 ```
 
@@ -48,16 +49,17 @@ BookSchema.plugin(mongoolia, {
 | `appId*`     | `string` | The Algolia application ID
 | `apiKey*`    | `string` | The Algolia **admin** API key
 | `indexName*` | `string` | The name of the index you want to push data
+| `fieldName*` | `string` | `Default: "_algoliaObjectID"` The name of the field you want to save data
 
 ## Methods
 
 After applying the `mongoolia` plugin to your mongoose model it registers new static methods:
 
-#### `Model.syncWithAlgolia(): Promise`
+#### `Model.syncWithAlgolia({ force: boolean }): Promise`
 Index the whole collection into your Algolia index.
 
 #### `Model.clearAlgoliaIndex(): Promise`
-Clears your Algolia index and remove `_algoliaObjectID` from your documents.
+Clears your Algolia index and remove `fieldName` from your documents.
 
 #### `Model.setAlgoliaIndexSettings(settings: {}, forwardToReplicas: boolean): Promise`
 Set one or more settings of the Algolia index, the full settings list is available [here](https://www.algolia.com/doc/api-reference/settings-api-parameters/).
