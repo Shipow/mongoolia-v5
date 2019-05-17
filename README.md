@@ -1,4 +1,4 @@
-# mongoolia
+# mongoolia-v5
 
 > Keep your [mongoosejs](http://mongoosejs.com/) schemas synced with [Algolia](http://www.algolia.com)
 
@@ -12,19 +12,19 @@ You can also index your whole collection if you didn't use this plugin when you 
 
 First install the library:
 
-* `> yarn add mongoolia` OR
-* `> npm add mongoolia -S`
+* `> yarn add mongoolia-v5` OR
+* `> npm add mongoolia-v5 -S`
 
 Then you need to specify which fields of your schema you want to index with Algolia and register the plugin to your mongoose model created with this schema:
 
 ```js
 // ES6
 import mongoose from 'mongoose';
-import mongoolia from 'mongoolia';
+import mongoolia from 'mongoolia-v5';
 
 // ES5
 const mongoose = require('mongoose');
-const mongoolia = require('mongoolia').default;
+const mongoolia = require('mongoolia-v5').default;
 
 // Pass `{algoliaIndex: true}` to push theses attributes for indexing to Algolia
 const BookSchema = new mongoose.Schema({

@@ -1,9 +1,9 @@
 {
-  "name": "mongoolia",
-  "version": "1.0.3",
+  "name": "mongoolia-v5",
+  "version": "1.0.1",
   "description": "Keep your mongoose schemas synced with Algolia",
-  "homepage": "https://github.com/algolia/mongoolia",
-  "repository": "algolia/mongoolia",
+  "homepage": "https://github.com/thedv91/mongoolia",
+  "repository": "thedv91/mongoolia",
   "main": "dist/index.js",
   "author": "Algolia <support@algolia.com>",
   "license": "MIT",
@@ -17,7 +17,6 @@
   ],
   "dependencies": {
     "algoliasearch": "^3.33.0",
-    "babel-watch": "^7.0.0",
     "lodash": "^4.17.11",
     "mongoose": "^5.5.9"
   },
