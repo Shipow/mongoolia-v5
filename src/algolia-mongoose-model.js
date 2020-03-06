@@ -12,17 +12,15 @@ type AlgoliasearchClientIndex = {
 
 export default function createAlgoliaMongooseModel({
   index,
-  attributesToIndex,
-  fieldName
+  attributesToIndex
 }: {
   index: AlgoliasearchClientIndex,
-  attributesToIndex: string[],
-  fieldName: string
+  attributesToIndex: string[]
 }) {
   class AlgoliaMongooseModel {
     // properties comming from mongoose model after `.loadClass()`
     _id: MongoId;
-    // _algoliaObjectID: string;
+    _algoliaObjectID: string;
     collection: { update: ({ _id: MongoId }, {}) => Promise<*> };
     toJSON: () => JSON;
 
@@ -35,8 +33,8 @@ export default function createAlgoliaMongooseModel({
     static async clearAlgoliaIndex() {
       await index.clearIndex();
       await this.collection.updateMany(
-        { [fieldName]: { $exists: true } },
-        { $set: { [fieldName]: null } }
+        { _algoliaObjectID: { $exists: true } },
+        { $set: { _algoliaObjectID: null } }
       );
     }
 
@@ -45,14 +43,14 @@ export default function createAlgoliaMongooseModel({
     static async syncWithAlgolia({ force }: { force: boolean } = {}) {
       if (force) await this.clearAlgoliaIndex();
 
-      const docs = await this.find({ [fieldName]: { $eq: null } });
+      const docs = await this.find({ _algoliaObjectID: { $eq: null } });
       const { objectIDs } = await index.addObjects(
         docs.map(doc => pick(doc, attributesToIndex))
       );
 
       return await Promise.all(
         zipWith(docs, objectIDs, (doc, _algoliaObjectID) => {
-          doc[fieldName] = _algoliaObjectID;
+          doc._algoliaObjectID = _algoliaObjectID;
           return doc.save();
         })
       );
@@ -81,19 +79,19 @@ export default function createAlgoliaMongooseModel({
         // find objects into mongodb matching `objectID` from Algolia search
         const hitsFromMongoose = await this.find(
           {
-            [fieldName]: { $in: map(data.hits, "objectID") }
+            _algoliaObjectID: { $in: map(data.hits, "objectID") }
           },
           reduce(
             this.schema.obj,
             (results: {}, val: {}, key: string) => ({ ...results, [key]: 1 }),
-            { [fieldName]: 1 }
+            { _algoliaObjectID: 1 }
           )
         );
 
         // add additional data from mongodb into Algolia hits
         const populatedHits = data.hits.map(hit => {
           const ogHit = find(hitsFromMongoose, {
-            [fieldName]: hit.objectID
+            _algoliaObjectID: hit.objectID
           });
 
           return omit(
@@ -101,7 +99,7 @@ export default function createAlgoliaMongooseModel({
               ...(ogHit ? ogHit.toJSON() : {}),
               ...hit
             },
-            [fieldName]
+            _algoliaObjectID
           );
         });
 
@@ -119,24 +117,24 @@ export default function createAlgoliaMongooseModel({
 
       this.collection.updateOne(
         { _id: this._id },
-        { $set: { [fieldName]: objectID } }
+        { $set: { _algoliaObjectID: objectID } }
       );
     }
 
     // * update object into algolia index
     async updateObjectToAlgolia() {
       const object = pick(this.toJSON(), attributesToIndex);
-      await index.saveObject({ ...object, objectID: this[fieldName] });
+      await index.saveObject({ ...object, objectID: this._algoliaObjectID });
     }
 
     // * delete object from algolia index
     async deleteObjectFromAlgolia() {
-      await index.deleteObject(this[fieldName]);
+      await index.deleteObject(this._algoliaObjectID);
     }
 
     // * schema.post('save')
     postSaveHook() {
-      if (this[fieldName]) {
+      if (this._algoliaObjectID) {
         this.updateObjectToAlgolia();
       } else {
         this.addObjectToAlgolia();
@@ -145,14 +143,14 @@ export default function createAlgoliaMongooseModel({
 
     // * schema.post('update')
     postUpdateHook() {
-      if (this[fieldName]) {
+      if (this._algoliaObjectID) {
         this.updateObjectToAlgolia();
       }
     }
 
     // * schema.post('remove')
     postRemoveHook() {
-      if (this[fieldName]) {
+      if (this._algoliaObjectID) {
         this.deleteObjectFromAlgolia();
       }
     }

@@ -1,7 +1,6 @@
 /* @flow */
 /* eslint no-console: 0 */
 
-import { reduce } from 'lodash';
 import algoliasearch from 'algoliasearch';
 
 import createAlgoliaMongooseModel from './algolia-mongoose-model';
@@ -10,7 +9,7 @@ type MongooliaOpts = {
   appId: string,
   apiKey: string,
   indexName: string,
-  fieldName: string
+  atributesToIndex: string[]
 };
 
 const validateOpts = options => {
@@ -26,10 +25,10 @@ const mongoolia: Mongoose$SchemaPlugin<MongooliaOpts> = function(
 ) {
   validateOpts(options);
 
-  const { appId, apiKey, indexName, fieldName = '_algoliaObjectID' } = options;
+  const { appId, apiKey, indexName, attributesToIndex } = options;
   // add new Algolia objectID field
   schema.add({
-    [fieldName]: { type: String, required: false, select: true },
+    _algoliaObjectID: { type: String, required: false, select: true },
   });
 
   // initialize Algolia client
@@ -37,12 +36,7 @@ const mongoolia: Mongoose$SchemaPlugin<MongooliaOpts> = function(
   const index = client.initIndex(indexName);
 
   // apply AlgoliaIndex class
-  const attributesToIndex = reduce(
-    schema.obj,
-    (results, val, key) => (val.algoliaIndex ? [...results, key] : results),
-    []
-  );
-  schema.loadClass(createAlgoliaMongooseModel({ index, attributesToIndex, fieldName }));
+  schema.loadClass(createAlgoliaMongooseModel({ index, attributesToIndex }));
 
   // register hooks
   schema.post('save', doc => doc.postSaveHook());
